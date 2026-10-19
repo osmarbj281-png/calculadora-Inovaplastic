@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculadora de Piso Modular</title>
+    <!-- Configuração PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0d6efd',
+                            600: '#0b5ed7',
+                            700: '#0a58ca',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        receipt: ['Courier', 'Courier New', 'Monaco', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        input, textarea {
+            user-select: text;
+        }
+        .receipt-paper {
+            background-color: #fcfbf7;
+            background-image: radial-gradient(#d1d5db 0.6px, transparent 0.6px);
+            background-size: 8px 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 0 12px rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen flex flex-col items-center pb-12 antialiased">
+
+    <!-- Container Principal -->
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-0 sm:my-4 sm:rounded-2xl sm:shadow-xl flex flex-col overflow-hidden">
+        
+        <!-- Header App Bar -->
+        <header class="bg-slate-900 text-white p-4 shadow-md flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+                <h1 class="font-bold text-base tracking-wide">Piso Modular</h1>
+            </div>
+            <span class="text-xs font-semibold bg-blue-600/30 text-blue-400 px-2.5 py-1 rounded-full border border-blue-500/30">v2.7 Pro</span>
+        </header>
+
+        <!-- Barra de Navegação de Abas -->
+        <nav class="flex bg-slate-800 p-1.5 gap-1.5 border-b border-slate-700">
+            <button id="nav_btn1" onclick="mudarTela('dados')" class="flex-1 py-3 px-2 rounded-lg font-bold text-sm transition-all duration-200 text-white bg-blue-600 shadow-sm flex items-center justify-center space-x-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <span>1. Inserir Dados</span>
+            </button>
+            <button id="nav_btn2" onclick="mudarTela('resultados')" class="flex-1 py-3 px-2 rounded-lg font-bold text-sm transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center space-x-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>2. Ver Resultados</span>
+            </button>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 p-4 overflow-y-auto">
+            
+            <!-- TELA 1: DADOS -->
+            <section id="screen_dados" class="space-y-3.5">
+                <div class="flex items-center justify-between border-b pb-2 mb-3 border-slate-200">
+                    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Dados do Orçamento / Visita</h2>
+                    <span class="text-xs text-slate-500 font-medium">Campos ampliados</span>
+                </div>
+
+                <!-- Formulário de Entradas -->
+                <div class="space-y-3">
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">VENDEDOR:</label>
+                        <input type="text" id="entry_vendedor" placeholder="Nome do Vendedor" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">EMPRESA:</label>
+                        <input type="text" id="entry_cliente" placeholder="Nome da Empresa / Cliente" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">CONTATO:</label>
+                        <input type="text" id="entry_contato" placeholder="Responsável / Fone" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">ENDEREÇO:</label>
+                        <input type="text" id="entry_endereco" placeholder="Rua, Nº, Bairro" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">DATA:</label>
+                        <input type="text" id="entry_data" placeholder="DD/MM/AAAA" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">Nº ORÇAMENTO:</label>
+                        <input type="text" id="entry_orc" placeholder="Ex: 1024" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">COMPRIMENTO (m):</label>
+                        <input type="number" step="any" id="entry_comp" placeholder="0.00" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">LARGURA (m):</label>
+                        <input type="number" step="any" id="entry_larg" placeholder="0.00" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">PREÇO PP (R$):</label>
+                        <input type="number" step="any" id="entry_preco" placeholder="0.00" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">MARGEM (%):</label>
+                        <input type="number" step="any" id="entry_margem" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">PREÇO COLORIDO (R$):</label>
+                        <input type="number" step="any" id="entry_p_col" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">METRO COLORIDO (m):</label>
+                        <input type="number" step="any" id="entry_m_col" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">METRO RAMPAS (m):</label>
+                        <input type="number" step="any" id="entry_m_rampa" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">PREÇO RAMPAS (R$):</label>
+                        <input type="number" step="any" id="entry_p_rampa" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">QTD CURVAS:</label>
+                        <input type="number" id="entry_curvas" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">PREÇO CURVAS (R$):</label>
+                        <input type="number" step="any" id="entry_p_curva" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">DESCONTO (R$):</label>
+                        <input type="number" step="any" id="entry_desc" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium text-emerald-600">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">FRETE (R$):</label>
+                        <input type="number" step="any" id="entry_frete" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">VALOR ENTRADA (R$):</label>
+                        <input type="number" step="any" id="entry_entrada" value="0" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+
+                    <div class="flex items-center bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                        <label class="w-1/3 text-xs font-bold text-slate-700 uppercase pl-1">Nº PARCELAS:</label>
+                        <input type="number" id="entry_parc" value="1" class="w-2/3 bg-white px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none font-medium">
+                    </div>
+                </div>
+
+                <!-- Botão Salvar Apenas Visita / Cliente -->
+                <button onclick="salvarApenasVisita()" class="w-full py-3.5 px-4 bg-amber-600 hover:bg-amber-700 active:scale-[0.99] text-white font-bold text-xs uppercase rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span>Salvar Apenas Visita / Cliente</span>
+                </button>
+
+                <!-- Botões de Ação Principal -->
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="processarCalculo()" class="py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <span>PROCESSAR</span>
+                    </button>
+                    <button onclick="limparTudo()" class="py-3.5 px-4 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span>LIMPAR</span>
+                    </button>
+                </div>
+
+                <!-- Card de Prévia -->
+                <div class="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-600 border-b border-slate-200 flex justify-between items-center">
+                        <span>VALOR TOTAL (PRÉVIA)</span>
+                        <span class="text-[11px] font-semibold text-slate-500">Tempo real</span>
+                    </div>
+                    <div class="p-4 text-center">
+                        <span id="lbl_previa" class="text-3xl font-extrabold text-blue-600">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <!-- Botão Salvar na Planilha -->
+                <button id="btn_salvar" disabled onclick="salvarPlanilha()" class="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    <span>SALVAR NA PLANILHA</span>
+                </button>
+            </section>
+
+            <!-- TELA 2: RESULTADOS -->
+            <section id="screen_resultados" class="hidden space-y-4">
+                <div class="flex items-center justify-between border-b pb-2 border-slate-200">
+                    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Resumo Detalhado</h2>
+                    <span class="text-xs text-slate-500 font-medium">Estilo Comprovante</span>
+                </div>
+
+                <!-- Caixa de Texto Estilo Recibo (Texto com cor preta forte: text-black font-semibold) -->
+                <div class="receipt-paper border border-amber-200/80 rounded-xl p-4 font-receipt text-xs sm:text-sm leading-relaxed text-black shadow-sm relative">
+                    <div id="lbl_resultado_texto" class="whitespace-pre-wrap selection:bg-amber-200 font-bold">Aguardando cálculo...</div>
+                </div>
+
+                <!-- Botão Whatsapp -->
+                <button onclick="enviarWhatsapp()" class="w-full py-4 px-4 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    <span>ENVIAR VIA WHATSAPP</span>
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast / Snackbar -->
+    <div id="snackbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white px-5 py-3 rounded-full text-sm font-semibold shadow-2xl backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2 border border-slate-700">
+        <span id="snackbar_text">Notificação</span>
+    </div>
+
+    <!-- Lógica JavaScript Principal -->
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhjAkqrvBp8tkQ9w8dBe3Q2_64nRNZDQvMk6rDbj-iYZH_AfguJeynrYhHzsq3WurS/exec";
+
+        let mensagem_whatsapp_global = "";
+        let payload_global = {};
+
+        document.addEventListener("DOMContentLoaded", () => {
+            preencherDataAtual();
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+            }
+
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', calcularPreviaRapida);
+            });
+        });
+
+        function preencherDataAtual() {
+            const hoje = new Date();
+            const dia = String(hoje.getDate()).padStart(2, '0');
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            const ano = hoje.getFullYear();
+            const dataFormatada = `${dia}/${mes}/${ano}`;
+            
+            const campoData = document.getElementById('entry_data');
+            if (campoData) {
+                campoData.value = dataFormatada;
+            }
+        }
+
+        function mostrarSnackbar(mensagem) {
+            const sb = document.getElementById('snackbar');
+            const txt = document.getElementById('snackbar_text');
+            txt.textContent = mensagem;
+            sb.classList.remove('opacity-0');
+            sb.classList.add('opacity-100');
+            setTimeout(() => {
+                sb.classList.remove('opacity-100');
+                sb.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        function mudarTela(tela) {
+            const btn1 = document.getElementById('nav_btn1');
+            const btn2 = document.getElementById('nav_btn2');
+            const secDados = document.getElementById('screen_dados');
+            const secRes = document.getElementById('screen_resultados');
+
+            if (tela === 'dados') {
+                btn1.className = "flex-1 py-3 px-2 rounded-lg font-bold text-sm transition-all duration-200 text-white bg-blue-600 shadow-sm flex items-center justify-center space-x-1.5";
+                btn2.className = "flex-1 py-3 px-2 rounded-lg font-bold text-sm transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+                secDados.classList.remove('hidden');
+                secRes.classList.add('hidden');
+            } else {
+                btn2.className = "flex-1 py-3 px-2 rounded-lg font-bold text-sm transition-all duration-200 text-white bg-blue-600 shadow-sm flex items-center justify-center space-x-1.5";
+                btn1.className = "flex-1 py-3 px-2 rounded-lg font-bold text-sm transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center space-x-1.5";
+                secRes.classList.remove('hidden');
+                secDados.classList.add('hidden');
+            }
+        }
+
+        function parseVal(id) {
+            const val = document.getElementById(id).value;
+            if (!val) return 0;
+            return parseFloat(val.toString().replace(',', '.')) || 0;
+        }
+
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function calcularPreviaRapida() {
+            const comp = parseVal('entry_comp');
+            const larg = parseVal('entry_larg');
+            const preco = parseVal('entry_preco');
+            const margem = parseVal('entry_margem');
+            const m_col = parseVal('entry_m_col');
+            const p_col = parseVal('entry_p_col');
+            const m_rampa = parseVal('entry_m_rampa');
+            const p_rampa = parseVal('entry_p_rampa');
+            const curvas = parseVal('entry_curvas');
+            const p_curva = parseVal('entry_p_curva');
+            const desc = parseVal('entry_desc');
+            const frete = parseVal('entry_frete');
+
+            const areaTotal = comp * larg;
+            const qtdCol = m_col > 0 ? Math.round(m_col / 0.30) : 0;
+            const valCol = qtdCol * p_col;
+            const areaCol = qtdCol * 0.09;
+
+            let areaPrinc = areaTotal - areaCol;
+            if (areaPrinc < 0) areaPrinc = 0;
+
+            const areaMargem = areaPrinc * (1 + (margem / 100));
+            const totalPecas = areaMargem / 0.09;
+            const valPecas = totalPecas * preco;
+
+            const qtdRampa = m_rampa > 0 ? Math.round(m_rampa / 0.30) : 0;
+            const valRampa = qtdRampa * p_rampa;
+            const valCurvas = curvas * p_curva;
+
+            const subtotal = valPecas + valCol + valRampa + valCurvas;
+            const totalGeral = subtotal - desc + frete;
+
+            document.getElementById('lbl_previa').textContent = formatarMoeda(totalGeral > 0 ? totalGeral : 0);
+        }
+
+        function salvarApenasVisita() {
+            const vendedor = document.getElementById('entry_vendedor').value.trim();
+            const cliente = document.getElementById('entry_cliente').value.trim();
+            const contato = document.getElementById('entry_contato').value.trim();
+            const endereco = document.getElementById('entry_endereco').value.trim();
+            const data = document.getElementById('entry_data').value.trim();
+
+            if (!cliente) {
+                mostrarSnackbar("Preencha ao menos o Nome da Empresa/Cliente!");
+                document.getElementById('entry_cliente').focus();
+                return;
+            }
+
+            const payloadVisita = {
+                origem: "roteirizador",
+                vendedor: vendedor || "Vendedor Campo",
+                cliente: cliente,
+                contato: contato || "Não informado",
+                endereco: endereco || "Não informado",
+                data: data || new Date().toLocaleDateString('pt-BR'),
+                status: "Visita Realizada (Sem Orçamento)"
+            };
+
+            mostrarSnackbar("Salvando visita...");
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadVisita)
+            })
+            .then(() => {
+                mostrarSnackbar("Visita salva com sucesso!");
+            })
+            .catch(err => {
+                console.error(err);
+                mostrarSnackbar("Erro ao salvar visita.");
+            });
+        }
+
+        function processarCalculo() {
+            const vendedor = document.getElementById('entry_vendedor').value.trim();
+            const cliente = document.getElementById('entry_cliente').value.trim();
+            const contato = document.getElementById('entry_contato').value.trim();
+            const endereco = document.getElementById('entry_endereco').value.trim();
+            const data = document.getElementById('entry_data').value.trim();
+            const orc = document.getElementById('entry_orc').value.trim();
+
+            if (!cliente) {
+                mostrarSnackbar("Preencha o Nome da Empresa/Cliente!");
+                mudarTela('dados');
+                document.getElementById('entry_cliente').focus();
+                return;
+            }
+
+            const comp = parseVal('entry_comp');
+            const larg = parseVal('entry_larg');
+            const preco = parseVal('entry_preco');
+
+            if (comp <= 0 || larg <= 0 || preco <= 0) {
+                mostrarSnackbar("Preencha Comprimento, Largura e Preço PP corretamente!");
+                mudarTela('dados');
+                return;
+            }
+
+            const margem = parseVal('entry_margem');
+            const p_col = parseVal('entry_p_col');
+            const m_col = parseVal('entry_m_col');
+            const m_rampa = parseVal('entry_m_rampa');
+            const p_rampa = parseVal('entry_p_rampa');
+            const curvas = parseVal('entry_curvas');
+            const p_curva = parseVal('entry_p_curva');
+            const desc = parseVal('entry_desc');
+            const frete = parseVal('entry_frete');
+            const entrada = parseVal('entry_entrada');
+            const parc = parseInt(document.getElementById('entry_parc').value) || 1;
+
+            const areaTotal = comp * larg;
+            const qtdCol = m_col > 0 ? Math.round(m_col / 0.30) : 0;
+            const valCol = qtdCol * p_col;
+            const areaCol = qtdCol * 0.09;
+
+            let areaPrinc = areaTotal - areaCol;
+            if (areaPrinc < 0) areaPrinc = 0;
+
+            // Cálculo das peças sem margem e com margem para exibir a diferença exata
+            const pecasSemMargem = areaPrinc / 0.09;
+            const areaMargem = areaPrinc * (1 + (margem / 100));
+            const totalPecas = areaMargem / 0.09;
+            const pecasAcrescidas = Math.round(totalPecas - pecasSemMargem);
+
+            const valPecas = totalPecas * preco;
+            const qtdRampa = m_rampa > 0 ? Math.round(m_rampa / 0.30) : 0;
+            const valRampa = qtdRampa * p_rampa;
+            const valCurvas = curvas * p_curva;
+
+            const subtotal = valPecas + valCol + valRampa + valCurvas;
+            const totalGeral = subtotal - desc + frete;
+
+            const saldoDevedor = totalGeral - entrada;
+            const valorParcela = parc > 0 ? (saldoDevedor / parc) : saldoDevedor;
+
+            // MONTAGEM DO RECIBO COM DETALHE DA MARGEM EM PEÇAS
+            let recibo = `================================\n`;
+            recibo += `      INOVAPLASTIC - ORÇAMENTO   \n`;
+            recibo += `================================\n`;
+            if (vendedor) recibo += `Vendedor: ${vendedor}\n`;
+            recibo += `Empresa:  ${cliente}\n`;
+            if (contato) recibo += `Contato:  ${contato}\n`;
+            if (endereco) recibo += `Endereço: ${endereco}\n`;
+            recibo += `Data:     ${data || '-'}   |   Orç: ${orc || 'S/N'}\n`;
+            recibo += `--------------------------------\n`;
+            recibo += `Área Total: ${areaTotal.toFixed(2)} m² (${comp}m x ${larg}m)\n`;
+            
+            if (margem > 0) {
+                recibo += `• Margem: +${margem}% (+${pecasAcrescidas} peças PP)\n`;
+            } else {
+                recibo += `• Margem de Segurança: Sem margem\n`;
+            }
+
+            recibo += `• Placas PP: ${Math.round(totalPecas)} un (${formatarMoeda(preco)} un) — ${formatarMoeda(valPecas)}\n`;
+            
+            if (m_col > 0) {
+                recibo += `• Colorido: ${m_col}m (${qtdCol} un a ${formatarMoeda(p_col)}) — ${formatarMoeda(valCol)}\n`;
+            }
+            if (m_rampa > 0) {
+                recibo += `• Rampas: ${m_rampa}m (${qtdRampa} un a ${formatarMoeda(p_rampa)}) — ${formatarMoeda(valRampa)}\n`;
+            }
+            if (curvas > 0) {
+                recibo += `• Curvas: ${curvas} un (a ${formatarMoeda(p_curva)}) — ${formatarMoeda(valCurvas)}\n`;
+            }
+
+            recibo += `--------------------------------\n`;
+            recibo += `SUBTOTAL:     ${formatarMoeda(subtotal)}\n`;
+            if (desc > 0) recibo += `DESCONTO:   - ${formatarMoeda(desc)}\n`;
+            if (frete > 0) recibo += `FRETE:      + ${formatarMoeda(frete)}\n`;
+            recibo += `================================\n`;
+            recibo += `TOTAL GERAL:  ${formatarMoeda(totalGeral)}\n`;
+            recibo += `================================\n`;
+            
+            if (entrada > 0 || parc > 1) {
+                recibo += `CONDIÇÃO DE PAGAMENTO:\n`;
+                if (entrada > 0) recibo += `• Entrada: ${formatarMoeda(entrada)}\n`;
+                if (parc > 0) recibo += `• Parcelas: ${parc}x de ${formatarMoeda(valorParcela)}\n`;
+                recibo += `--------------------------------\n`;
+            }
+
+            document.getElementById('lbl_resultado_texto').textContent = recibo;
+
+            mensagem_whatsapp_global = `*ORÇAMENTO - PISO MODULAR*\n` +
+                (vendedor ? `🧑‍💼 Vendedor: ${vendedor}\n` : '') +
+                `🏢 Empresa: ${cliente}\n` +
+                (contato ? `👤 Contato: ${contato}\n` : '') +
+                `📅 Data: ${data || '-'}\n` +
+                `📐 Área: ${areaTotal.toFixed(2)}m²\n` +
+                `💰 *TOTAL GERAL: ${formatarMoeda(totalGeral)}*\n\n` +
+                `_Gerado via Inovaplastic Pro_`;
+
+            payload_global = {
+                origem: "calculadora",
+                vendedor: vendedor,
+                cliente: cliente,
+                contato: contato,
+                endereco: endereco,
+                data: data || new Date().toLocaleDateString('pt-BR'),
+                orcamento: orc,
+                comprimento: comp.toFixed(2),
+                largura: larg.toFixed(2),
+                preco_pp: formatarMoeda(preco),
+                margem: margem.toFixed(2),
+                preco_colorido: formatarMoeda(p_col),
+                metro_colorido: m_col.toFixed(2),
+                metro_rampas: m_rampa.toFixed(2),
+                preco_rampas: formatarMoeda(p_rampa),
+                qtd_curvas: curvas,
+                preco_curvas: formatarMoeda(p_curva),
+                desconto: formatarMoeda(desc),
+                frete: formatarMoeda(frete),
+                valor_entrada: formatarMoeda(entrada),
+                n_parcelas: parc,
+                valor_total: formatarMoeda(totalGeral)
+            };
+
+            document.getElementById('btn_salvar').removeAttribute('disabled');
+            mudarTela('resultados');
+            mostrarSnackbar("Cálculo processado com sucesso!");
+        }
+
+        function limparTudo() {
+            document.getElementById('entry_vendedor').value = '';
+            document.getElementById('entry_cliente').value = '';
+            document.getElementById('entry_contato').value = '';
+            document.getElementById('entry_endereco').value = '';
+            document.getElementById('entry_orc').value = '';
+            document.getElementById('entry_comp').value = '';
+            document.getElementById('entry_larg').value = '';
+            document.getElementById('entry_preco').value = '';
+            document.getElementById('entry_margem').value = '0';
+            document.getElementById('entry_p_col').value = '0';
+            document.getElementById('entry_m_col').value = '0';
+            document.getElementById('entry_m_rampa').value = '0';
+            document.getElementById('entry_p_rampa').value = '0';
+            document.getElementById('entry_curvas').value = '0';
+            document.getElementById('entry_p_curva').value = '0';
+            document.getElementById('entry_desc').value = '0';
+            document.getElementById('entry_frete').value = '0';
+            document.getElementById('entry_entrada').value = '0';
+            document.getElementById('entry_parc').value = '1';
+
+            preencherDataAtual();
+
+            document.getElementById('lbl_previa').textContent = 'R$ 0,00';
+            document.getElementById('lbl_resultado_texto').textContent = 'Aguardando cálculo...';
+            document.getElementById('btn_salvar').setAttribute('disabled', 'true');
+            payload_global = {};
+            mensagem_whatsapp_global = '';
+            mudarTela('dados');
+            mostrarSnackbar("Campos limpos!");
+        }
+
+        function salvarPlanilha() {
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("SUA_URL")) {
+                mostrarSnackbar("Configure a URL do Google Apps Script!");
+                return;
+            }
+
+            const btn = document.getElementById('btn_salvar');
+            btn.setAttribute('disabled', 'true');
+            btn.textContent = "SALVANDO...";
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload_global)
+            })
+            .then(() => {
+                mostrarSnackbar("Salvo na planilha com sucesso!");
+                btn.textContent = "SALVO NA PLANILHA";
+                setTimeout(() => {
+                    btn.textContent = "SALVAR NA PLANILHA";
+                    btn.removeAttribute('disabled');
+                }, 3000);
+            })
+            .catch(err => {
+                console.error(err);
+                mostrarSnackbar("Erro ao salvar na planilha.");
+                btn.textContent = "SALVAR NA PLANILHA";
+                btn.removeAttribute('disabled');
+            });
+        }
+
+        function enviarWhatsapp() {
+            if (!mensagem_whatsapp_global) {
+                mostrarSnackbar("Faça o cálculo primeiro!");
+                mudarTela('dados');
+                return;
+            }
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem_whatsapp_global)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
